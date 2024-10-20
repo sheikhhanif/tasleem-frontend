@@ -6,8 +6,12 @@ import '../models/content_model.dart';
 
 class FullContentModal extends StatelessWidget {
   final ContentModel document;
+  final String title; // New parameter for dynamic title
 
-  FullContentModal({required this.document});
+  FullContentModal({
+    required this.document,
+    required this.title, // Initialize the title parameter
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,7 @@ class FullContentModal extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              // Header with Icon and Title
+              // Header with Icon and Dynamic Title
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
@@ -47,7 +51,7 @@ class FullContentModal extends StatelessWidget {
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Full Content',
+                        title, // Use the dynamic title here
                         style: Theme.of(context).textTheme.displayLarge?.copyWith(
                           fontSize: 18, // Reduced font size
                           fontWeight: FontWeight.bold,
@@ -59,6 +63,7 @@ class FullContentModal extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.close, color: Colors.grey[600]),
                       onPressed: () => Navigator.of(context).pop(),
+                      tooltip: 'Close',
                     ),
                   ],
                 ),

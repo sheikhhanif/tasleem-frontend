@@ -2,61 +2,114 @@
 
 import 'package:flutter/material.dart';
 
-class SuggestedQuestionsRow extends StatelessWidget {
+class SuggestedQuestionsRow extends StatefulWidget {
   final Function(String) onQuestionTap;
   final List<String> questions;
 
-  SuggestedQuestionsRow({required this.onQuestionTap, required this.questions});
+  SuggestedQuestionsRow({
+    required this.onQuestionTap,
+    required this.questions,
+  });
+
+  @override
+  _SuggestedQuestionsRowState createState() => _SuggestedQuestionsRowState();
+}
+
+class _SuggestedQuestionsRowState extends State<SuggestedQuestionsRow>
+    with SingleTickerProviderStateMixin {
+  late ScrollController _scrollController;
+  late AnimationController _animationController;
+  late double _maxScrollExtent;
+  bool _isUserScrolling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    // Initialize the animation controller for scrolling
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 60), // Adjust for scrolling speed
+    )..addListener(() {
+      if (_scrollController.hasClients && !_isUserScrolling) {
+        double newOffset = _animationController.value * _maxScrollExtent;
+        _scrollController.jumpTo(newOffset);
+      }
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _maxScrollExtent = _scrollController.position.maxScrollExtent;
+        _animationController.repeat();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  // Duplicate the questions to allow seamless scrolling
+  List<String> get _extendedQuestions => [...widget.questions, ...widget.questions];
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50,
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        children: [
-          // 1 → 2 → 1 Card Pattern
-          _buildCard(context, questions[0], 180),
-          _buildCard(context, questions[1], 120),
-          _buildCard(context, questions[2], 120),
-          _buildCard(context, questions[3], 180),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCard(BuildContext context, String question, double width) {
-    return GestureDetector(
-      onTap: () {
-        onQuestionTap(question);
-      },
-      child: Container(
-        width: width,
-        margin: const EdgeInsets.symmetric(horizontal: 6.0),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.grey[800],
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.question_answer, color: Colors.white, size: 16),
-            SizedBox(width: 6),
-            Expanded(
-              child: Text(
-                question,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
+      height: 35, // Maintain consistent height
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (scrollNotification) {
+          if (scrollNotification is UserScrollNotification ||
+              scrollNotification is ScrollStartNotification) {
+            setState(() {
+              _isUserScrolling = true;
+              _animationController.stop();
+            });
+          } else if (scrollNotification is ScrollEndNotification ||
+              scrollNotification is OverscrollNotification) {
+            setState(() {
+              _isUserScrolling = false;
+              _animationController.repeat();
+            });
+          }
+          return false;
+        },
+        child: ListView.builder(
+          controller: _scrollController,
+          scrollDirection: Axis.horizontal,
+          itemCount: _extendedQuestions.length,
+          itemBuilder: (context, index) {
+            final question = _extendedQuestions[index];
+            return GestureDetector(
+              onTap: () {
+                widget.onQuestionTap(question);
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 6.0),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Reduced internal padding
+                decoration: BoxDecoration(
+                  color: Colors.grey[800],
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.question_answer, color: Colors.white, size: 16),
+                    SizedBox(width: 6),
+                    Text(
+                      question,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );

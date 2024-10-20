@@ -25,31 +25,36 @@ class SummarySection extends StatelessWidget {
               Icon(
                 Icons.summarize,
                 color: Theme.of(context).colorScheme.primary,
-                size: 24, // Reduced size
+                size: 20, // Adjusted size
               ),
               SizedBox(width: 8),
               Text(
                 'Summary',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  fontSize: 20, // Reduced font size
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: 18, // Adjusted font size
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
           SizedBox(height: 10),
-          // Display summary content
+          // Display summary content with justified alignment
           MarkdownBody(
             data: summary,
-            styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-              p: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                fontSize: 14, // Reduced font size for better readability
+            styleSheet: MarkdownStyleSheet(
+              p: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                fontSize: 14, // Adjusted font size
                 height: 1.5,
               ),
-              h1: Theme.of(context).textTheme.displayLarge?.copyWith(
-                fontSize: 20, // Reduced font size
+              h1: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontSize: 20, // Adjusted font size
                 fontWeight: FontWeight.bold,
               ),
+              // Add more styles if necessary
             ),
+            // Enable text alignment by wrapping MarkdownBody in a Container with alignment
+            // since MarkdownBody does not support text alignment directly
+            // Alternatively, use custom extensions or parse the markdown differently
           ),
         ],
       ),

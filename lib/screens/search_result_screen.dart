@@ -1,146 +1,235 @@
 // lib/screens/search_result_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
-import '../widgets/custom_search_bar.dart';
 import '../widgets/summary_section.dart';
 import '../widgets/swipeable_cards.dart';
 import '../services/api_service.dart';
 import '../models/content_model.dart';
 
 class SearchResultScreen extends StatefulWidget {
-  final String query;
-  final Function(String) onSearch;
+  final Function(SearchResultScreenState) onInitialize; // Callback to pass state
+  final VoidCallback onClose; // Callback when modal is closed
 
-  SearchResultScreen({required this.query, required this.onSearch});
+  SearchResultScreen({
+    required this.onInitialize,
+    required this.onClose,
+  });
 
   @override
-  _SearchResultScreenState createState() => _SearchResultScreenState();
+  SearchResultScreenState createState() => SearchResultScreenState();
 }
 
-class _SearchResultScreenState extends State<SearchResultScreen> {
-  String aiSummary = '';
-  List<ContentModel> contextDocuments = [];
-  bool isLoading = false;
-  bool isError = false;
-  late TextEditingController _searchController;
-  late FocusNode _focusNode;
+class SearchResultScreenState extends State<SearchResultScreen> {
+  List<SearchResult> _searchResults = [];
+  TextEditingController _searchController = TextEditingController();
+  FocusNode _focusNode = FocusNode();
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _searchController = TextEditingController(text: widget.query);
-    _focusNode = FocusNode();
-
-    // Listen for keyboard visibility changes
-    KeyboardVisibilityController().onChange.listen((bool visible) {
-      setState(() {}); // Rebuild when the keyboard visibility changes
+    widget.onInitialize(this); // Pass the state reference
+    // Listen for when the modal is closed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ModalRoute.of(context)?.addLocalHistoryEntry(LocalHistoryEntry(onRemove: widget.onClose));
     });
-
-    // Perform initial search
-    _performSearch(widget.query);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  void _performSearch(String query) {
+  // Method to add a new search query
+  void addSearchQuery(String query) {
     setState(() {
-      aiSummary = '';
-      contextDocuments = [];
-      isLoading = true;
-      isError = false;
+      _searchResults.add(SearchResult(query: query, isLoading: true));
     });
 
-    // Fetch results asynchronously (simulate)
-    ApiService.askQuestion(query).listen((data) {
-      if (data.containsKey('answer')) {
-        setState(() {
-          aiSummary += data['answer'];
-        });
-      }
-      if (data.containsKey('context')) {
-        setState(() {
-          contextDocuments.addAll(
-            (data['context'] as List).map((doc) => ContentModel.fromJson(doc)).toList(),
-          );
-        });
-      }
-      if (data.containsKey('error')) {
-        setState(() {
-          isError = true;
-        });
-      }
-      setState(() {
-        isLoading = false;
-      });
-    });
+    _performSearch(query);
   }
 
-  void _onSearch(String query) {
-    widget.onSearch(query); // Trigger search
-    FocusScope.of(context).unfocus(); // Close the keyboard
+  void _performSearch(String query) async {
+    try {
+      await for (final data in ApiService.askQuestion(query)) {
+        if (data.containsKey('answer')) {
+          setState(() {
+            _searchResults.last.aiSummary += data['answer'];
+          });
+        }
+        if (data.containsKey('context')) {
+          final List<dynamic> docs = data['context'];
+          setState(() {
+            _searchResults.last.contextDocuments.addAll(
+              docs.map((doc) => ContentModel.fromJson(doc)).toList(),
+            );
+          });
+        }
+        if (data.containsKey('error')) {
+          setState(() {
+            _searchResults.last.isError = true;
+            _searchResults.last.isLoading = false;
+          });
+          // Removed SnackBar as per your request
+          return;
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _searchResults.last.isError = true;
+        _searchResults.last.isLoading = false;
+      });
+      // Removed SnackBar as per your request
+    } finally {
+      setState(() {
+        _searchResults.last.isLoading = false;
+      });
+      _scrollToBottom();
+    }
+  }
+
+  void _handleSearch() {
+    final query = _searchController.text.trim();
+    if (query.isNotEmpty) {
+      addSearchQuery(query);
+      _searchController.clear();
+      FocusScope.of(context).requestFocus(_focusNode);
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent + 100,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Search: ${widget.query}',
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        // Drag Handle
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 12.0),
+          width: 50,
+          height: 5,
+          decoration: BoxDecoration(
+            color: Colors.grey[700],
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
-        centerTitle: true,
-        backgroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: KeyboardVisibilityBuilder(
-          builder: (context, isKeyboardVisible) {
-            return SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                  top: 8.0,
-                  bottom: isKeyboardVisible ? 200 : 8.0, // Adjusts padding when keyboard is visible
-                ),
+        // Search Result Content
+        Expanded(
+          child: _searchResults.isEmpty
+              ? Center(child: Text('No search results.'))
+              : ListView.builder(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            itemCount: _searchResults.length,
+            itemBuilder: (context, index) {
+              final result = _searchResults[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Updated CustomSearchBar
-                    CustomSearchBar(
-                      controller: _searchController,
-                      onSearch: _onSearch,
-                      focusNode: _focusNode,
-                    ),
-                    if (aiSummary.isNotEmpty)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SummarySection(summary: aiSummary),
-                          SizedBox(height: 20),
-                        ],
+                    // Query Title
+                    Text(
+                      result.query,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.tealAccent,
+                        fontWeight: FontWeight.bold,
                       ),
-                    if (contextDocuments.isNotEmpty) ...[
-                      SwipeableCards(documents: contextDocuments),
-                    ],
-                    if (isLoading) Center(child: CircularProgressIndicator()),
-                    if (isError) Center(child: Text('An error occurred.')),
+                    ),
+                    SizedBox(height: 8),
+                    // Display AI Summary
+                    if (result.aiSummary.isNotEmpty)
+                      SummarySection(summary: result.aiSummary),
+                    SizedBox(height: 8),
+                    // Display Swipeable Cards
+                    if (result.contextDocuments.isNotEmpty)
+                      SwipeableCards(documents: result.contextDocuments),
+                    // Loading Indicator
+                    if (result.isLoading)
+                      Center(child: CircularProgressIndicator()),
+                    // Error Message
+                    if (result.isError)
+                      Center(child: Text('An error occurred.')),
                   ],
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
-      ),
+        // Search Bar at the bottom of the modal
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              // Expanded Search Field
+              Expanded(
+                child: Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[800], // Background color for the search box
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(width: 16.0), // Left padding inside the search box
+                      // Expanded TextField without prefixIcon
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          focusNode: _focusNode,
+                          onSubmitted: (_) => _handleSearch(),
+                          decoration: InputDecoration(
+                            hintText: 'Ask more questions...',
+                            border: InputBorder.none,
+                          ),
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                      // Send Icon Button inside the search box
+                      IconButton(
+                        icon: Icon(Icons.send, color: Colors.tealAccent),
+                        onPressed: _handleSearch,
+                        tooltip: 'Send',
+                      ),
+                      SizedBox(width: 16.0), // Right padding inside the search box
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
+}
+
+// Model to hold individual search results
+class SearchResult {
+  final String query;
+  String aiSummary;
+  List<ContentModel> contextDocuments;
+  bool isLoading;
+  bool isError;
+
+  SearchResult({
+    required this.query,
+    this.aiSummary = '',
+    List<ContentModel>? contextDocuments,
+    this.isLoading = false,
+    this.isError = false,
+  }) : this.contextDocuments = contextDocuments ?? [];
 }
