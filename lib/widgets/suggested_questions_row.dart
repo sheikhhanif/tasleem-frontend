@@ -57,6 +57,10 @@ class _SuggestedQuestionsRowState extends State<SuggestedQuestionsRow>
 
   @override
   Widget build(BuildContext context) {
+    // Access the current theme's color scheme and text theme
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Container(
       height: 35, // Maintain consistent height
       child: NotificationListener<ScrollNotification>(
@@ -90,17 +94,28 @@ class _SuggestedQuestionsRowState extends State<SuggestedQuestionsRow>
                 margin: const EdgeInsets.symmetric(horizontal: 6.0),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Reduced internal padding
                 decoration: BoxDecoration(
-                  color: Colors.grey[800],
+                  color: colorScheme.surfaceVariant, // Theme-based background color
                   borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colorScheme.onSurface.withOpacity(0.1), // Subtle shadow for depth
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.question_answer, color: Colors.white, size: 16),
+                    Icon(
+                      Icons.question_answer,
+                      color: colorScheme.onSurface, // Theme-based icon color
+                      size: 16,
+                    ),
                     SizedBox(width: 6),
                     Text(
                       question,
-                      style: TextStyle(
-                        color: Colors.white,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface, // Theme-based text color
                         fontSize: 14,
                       ),
                       overflow: TextOverflow.ellipsis,

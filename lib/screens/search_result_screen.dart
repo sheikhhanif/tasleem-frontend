@@ -31,7 +31,9 @@ class SearchResultScreenState extends State<SearchResultScreen> {
     widget.onInitialize(this); // Pass the state reference
     // Listen for when the modal is closed
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ModalRoute.of(context)?.addLocalHistoryEntry(LocalHistoryEntry(onRemove: widget.onClose));
+      ModalRoute.of(context)?.addLocalHistoryEntry(
+        LocalHistoryEntry(onRemove: widget.onClose),
+      );
     });
   }
 
@@ -87,7 +89,7 @@ class SearchResultScreenState extends State<SearchResultScreen> {
       setState(() {
         _searchResults.last.isLoading = false;
       });
-      _scrollToBottom();
+      _scrollToNewItemAtTop();
     }
   }
 
@@ -96,16 +98,24 @@ class SearchResultScreenState extends State<SearchResultScreen> {
     if (query.isNotEmpty) {
       addSearchQuery(query);
       _searchController.clear();
-      FocusScope.of(context).requestFocus(_focusNode);
+      _focusNode.unfocus(); // Unfocus the TextField to exit typing mode
     }
   }
 
-  void _scrollToBottom() {
+  void _scrollToNewItemAtTop() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
+        // Calculate the target scroll position to attempt to position the bottom of the last item at the top of the viewport
+        final currentPosition = _scrollController.position.pixels;
+        final maxScrollExtent = _scrollController.position.maxScrollExtent;
+        final viewportHeight = _scrollController.position.viewportDimension;
+
+        // Estimate a position to scroll to which attempts to move the last item top out of view
+        final targetPosition = currentPosition + viewportHeight;
+
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 100,
-          duration: Duration(milliseconds: 300),
+          targetPosition > maxScrollExtent ? maxScrollExtent : targetPosition,  // Ensure we do not scroll beyond the max extent
+          duration: Duration(milliseconds: 500), // Quick scroll to adjust view
           curve: Curves.easeOut,
         );
       }
@@ -114,6 +124,11 @@ class SearchResultScreenState extends State<SearchResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Access the current theme's color scheme and text theme
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       children: [
         // Drag Handle
@@ -122,47 +137,79 @@ class SearchResultScreenState extends State<SearchResultScreen> {
           width: 50,
           height: 5,
           decoration: BoxDecoration(
-            color: Colors.grey[700],
+            color: colorScheme.onSurface.withOpacity(0.5), // Theme-based color
             borderRadius: BorderRadius.circular(10),
           ),
         ),
         // Search Result Content
         Expanded(
           child: _searchResults.isEmpty
-              ? Center(child: Text('No search results.'))
-              : ListView.builder(
+              ? Center(
+            child: Text(
+              'No search results.',
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onBackground.withOpacity(0.7),
+              ),
+            ),
+          )
+              : ListView.separated(
             controller: _scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             itemCount: _searchResults.length,
+            separatorBuilder: (context, index) => Divider(
+              color: colorScheme.onSurface.withOpacity(0.2),
+              thickness: 1,
+              indent: 0,
+              endIndent: 0,
+            ),
             itemBuilder: (context, index) {
               final result = _searchResults[index];
               return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
+                padding: const EdgeInsets.only(bottom: 24.0), // Increased bottom padding for separation
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Query Title
                     Text(
                       result.query,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.tealAccent,
+                      style: textTheme.titleLarge?.copyWith(
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 8),
+                    SizedBox(height: 12), // Increased spacing between title and summary
                     // Display AI Summary
                     if (result.aiSummary.isNotEmpty)
-                      SummarySection(summary: result.aiSummary),
-                    SizedBox(height: 8),
+                      SummarySection(
+                        summary: result.aiSummary,
+                      ),
+                    SizedBox(height: 12), // Increased spacing between summary and references
                     // Display Swipeable Cards
                     if (result.contextDocuments.isNotEmpty)
-                      SwipeableCards(documents: result.contextDocuments),
+                      SwipeableCards(
+                        documents: result.contextDocuments,
+                      ),
                     // Loading Indicator
                     if (result.isLoading)
-                      Center(child: CircularProgressIndicator()),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12.0),
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: colorScheme.primary,
+                          ),
+                        ),
+                      ),
                     // Error Message
                     if (result.isError)
-                      Center(child: Text('An error occurred.')),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12.0),
+                        child: Text(
+                          'An error occurred while fetching the content.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               );
@@ -179,7 +226,14 @@ class SearchResultScreenState extends State<SearchResultScreen> {
                 child: Container(
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Colors.grey[800], // Background color for the search box
+                    gradient: LinearGradient(
+                      colors: [
+                        colorScheme.primary.withOpacity(0.8),
+                        colorScheme.secondary.withOpacity(0.8),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Row(
@@ -193,14 +247,27 @@ class SearchResultScreenState extends State<SearchResultScreen> {
                           onSubmitted: (_) => _handleSearch(),
                           decoration: InputDecoration(
                             hintText: 'Ask more questions...',
+                            hintStyle: textTheme.bodyMedium?.copyWith(
+                              color: isDarkMode
+                                  ? colorScheme.onPrimary.withOpacity(0.6)
+                                  : colorScheme.onPrimary.withOpacity(0.6),
+                              fontSize: 16,
+                            ),
                             border: InputBorder.none,
+                            // Ensure the background is transparent
+                            filled: false,
                           ),
-                          style: TextStyle(color: Colors.white),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: isDarkMode
+                                ? colorScheme.onPrimary.withOpacity(0.9)
+                                : colorScheme.onPrimary.withOpacity(0.9),
+                          ),
+                          cursorColor: colorScheme.onPrimary, // Set cursor color
                         ),
                       ),
                       // Send Icon Button inside the search box
                       IconButton(
-                        icon: Icon(Icons.send, color: Colors.tealAccent),
+                        icon: Icon(Icons.send, color: Colors.white),
                         onPressed: _handleSearch,
                         tooltip: 'Send',
                       ),

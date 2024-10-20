@@ -31,30 +31,27 @@ class SummarySection extends StatelessWidget {
               Text(
                 'Summary',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontSize: 18, // Adjusted font size
+                  fontSize: 18, // Adjusted font size for better readability
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
           SizedBox(height: 10),
-          // Display summary content with justified alignment
+          // Display summary content without justification
           MarkdownBody(
             data: summary,
             styleSheet: MarkdownStyleSheet(
               p: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontSize: 14, // Adjusted font size
-                height: 1.5,
+                fontSize: 16, // Increased font size for better readability
+                height: 1.6, // Increased line height for comfort
               ),
               h1: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontSize: 20, // Adjusted font size
                 fontWeight: FontWeight.bold,
               ),
-              // Add more styles if necessary
+              // Additional styling as needed
             ),
-            // Enable text alignment by wrapping MarkdownBody in a Container with alignment
-            // since MarkdownBody does not support text alignment directly
-            // Alternatively, use custom extensions or parse the markdown differently
           ),
         ],
       ),

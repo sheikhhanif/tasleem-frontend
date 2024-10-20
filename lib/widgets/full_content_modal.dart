@@ -6,15 +6,18 @@ import '../models/content_model.dart';
 
 class FullContentModal extends StatelessWidget {
   final ContentModel document;
-  final String title; // New parameter for dynamic title
+  final String title; // Dynamic title
 
   FullContentModal({
     required this.document,
-    required this.title, // Initialize the title parameter
+    required this.title,
   });
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.7, // Initial size of the modal
       minChildSize: 0.4, // Minimum size when dragged down
@@ -23,7 +26,7 @@ class FullContentModal extends StatelessWidget {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.95),
+            color: colorScheme.background,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
@@ -45,15 +48,15 @@ class FullContentModal extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.article,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24, // Reduced size
+                      color: colorScheme.primary,
+                      size: 24,
                     ),
                     SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        title, // Use the dynamic title here
-                        style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          fontSize: 18, // Reduced font size
+                        title, // Dynamic title
+                        style: textTheme.titleMedium?.copyWith(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
@@ -76,15 +79,17 @@ class FullContentModal extends StatelessWidget {
                   padding: const EdgeInsets.all(16.0),
                   child: MarkdownBody(
                     data: document.summary,
-                    styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                      p: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        fontSize: 14, // Reduced font size
-                        height: 1.5,
+                    styleSheet: MarkdownStyleSheet(
+                      p: textTheme.bodyMedium?.copyWith(
+                        fontSize: 16,
+                        height: 1.6,
+                        color: colorScheme.onBackground,
                       ),
-                      h1: Theme.of(context).textTheme.displayLarge?.copyWith(
-                        fontSize: 20, // Reduced font size
+                      h1: textTheme.titleLarge?.copyWith(
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
+                      // Additional styles as needed
                     ),
                   ),
                 ),

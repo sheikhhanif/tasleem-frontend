@@ -1,25 +1,35 @@
 // lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'theme.dart';
+import 'theme_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/explore_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/search_result_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    // Access the ThemeProvider to get the current theme mode
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return MaterialApp(
       title: 'Tasleem Search',
-      theme: ThemeData(
-        primarySwatch: Colors.teal,
-        brightness: Brightness.dark,
-        scaffoldBackgroundColor: Colors.black,
-      ),
+      debugShowCheckedModeBanner: false,
+      themeMode: themeProvider.themeMode, // Set the theme mode based on ThemeProvider
+      theme: AppThemes.lightTheme, // Apply the light theme
+      darkTheme: AppThemes.darkTheme, // Apply the dark theme
       home: MainNavigation(),
     );
   }
@@ -31,8 +41,8 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0; // Tracks bottom navigation index
-  bool _isSearchModalOpen = false; // Flag to track if modal is open
+  int _currentIndex = 0; // Tracks the current bottom navigation index
+  bool _isSearchModalOpen = false; // Flag to track if the search modal is open
   late SearchResultScreenState _searchScreenState; // Reference to SearchResultScreen's state
 
   // List of screens managed by the bottom navigation bar
@@ -43,8 +53,8 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _screens = [
       HomeScreen(
-        onSearchBarTap: _openSearchModal, // Pass the modal opening function
-        onSearch: _openSearchModalWithQuery, // Pass the search with query function
+        onSearchBarTap: _openSearchModal, // Function to open the search modal
+        onSearch: _openSearchModalWithQuery, // Function to open the search modal with a query
       ),
       ExploreScreen(),
       HistoryScreen(),
@@ -67,7 +77,7 @@ class _MainNavigationState extends State<MainNavigation> {
             heightFactor: 0.9, // Sets the modal height to 90% of the screen
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[900], // Opaque background
+                color: Theme.of(context).colorScheme.background, // Use theme background color
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: SearchResultScreen(
@@ -107,6 +117,9 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    // Access the ThemeProvider to utilize theme-based colors
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
@@ -116,9 +129,9 @@ class _MainNavigationState extends State<MainNavigation> {
             _currentIndex = index;
           });
         },
-        backgroundColor: Colors.grey[900],
-        unselectedItemColor: Colors.white54,
-        selectedItemColor: Colors.tealAccent,
+        backgroundColor: Theme.of(context).colorScheme.surface, // Use theme surface color
+        unselectedItemColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

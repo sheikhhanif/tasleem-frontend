@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../models/content_model.dart';
 import 'full_content_modal.dart';
-import '../widgets/summary_section.dart';
 import 'package:flutter/services.dart'; // For HapticFeedback
 
 class SwipeableCards extends StatefulWidget {
@@ -42,6 +41,9 @@ class _SwipeableCardsState extends State<SwipeableCards> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -52,31 +54,31 @@ class _SwipeableCardsState extends State<SwipeableCards> {
               label: 'References Icon',
               child: Icon(
                 Icons.bookmark,
-                color: Theme.of(context).colorScheme.primary,
-                size: 24, // Adjusted size
+                color: colorScheme.primary,
+                size: 24,
               ),
             ),
             SizedBox(width: 8),
             Text(
               'References',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontSize: 20, // Adjusted font size
+              style: textTheme.titleMedium?.copyWith(
+                fontSize: 20,
               ),
             ),
           ],
         ),
         SizedBox(height: 6),
-        // Container instead of Card for swipeable content
+        // Container for swipeable content
         Container(
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.black12,
+                color: colorScheme.onSurface.withOpacity(0.1),
                 blurRadius: 4,
-                offset: Offset(0, 2),
+                offset: Offset(0, 1),
               ),
             ],
           ),
@@ -107,13 +109,12 @@ class _SwipeableCardsState extends State<SwipeableCards> {
                           // Reference Title
                           Text(
                             doc.title,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.w600,
-                              fontSize: 14, // Adjusted font size
+                              fontSize: 16,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.left,
                           ),
                           SizedBox(height: 6),
                           // Reference Summary
@@ -121,13 +122,12 @@ class _SwipeableCardsState extends State<SwipeableCards> {
                             doc.summary.length > 80
                                 ? doc.summary.substring(0, 80) + '...'
                                 : doc.summary,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontSize: 12, // Adjusted font size
-                              color: Colors.grey[600],
+                            style: textTheme.bodySmall?.copyWith(
+                              fontSize: 14,
+                              color: colorScheme.onSurface.withOpacity(0.6),
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.left,
                           ),
                         ],
                       ),
@@ -143,7 +143,7 @@ class _SwipeableCardsState extends State<SwipeableCards> {
                 effect: WormEffect(
                   dotHeight: 8,
                   dotWidth: 8,
-                  activeDotColor: Theme.of(context).colorScheme.primary,
+                  activeDotColor: colorScheme.primary,
                 ),
               ),
             ],
