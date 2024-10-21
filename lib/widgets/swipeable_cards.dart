@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'dart:async'; // For Timer
 import '../models/content_model.dart';
 import 'full_content_modal.dart';
 import 'package:flutter/services.dart'; // For HapticFeedback
@@ -18,11 +19,32 @@ class SwipeableCards extends StatefulWidget {
 class _SwipeableCardsState extends State<SwipeableCards> {
   PageController _pageController = PageController();
   int currentIndex = 0;
+  Timer? _autoSwipeTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startAutoSwipe();
+  }
 
   @override
   void dispose() {
+    _autoSwipeTimer?.cancel();
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _startAutoSwipe() {
+    _autoSwipeTimer = Timer.periodic(Duration(seconds: 6), (timer) {
+      if (_pageController.hasClients) {
+        final nextPage = (currentIndex + 1) % widget.documents.length;
+        _pageController.animateToPage(
+          nextPage,
+          duration: Duration(milliseconds: 2000),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   void _showFullContentModal(BuildContext context, ContentModel doc) {
@@ -54,7 +76,7 @@ class _SwipeableCardsState extends State<SwipeableCards> {
               label: 'References Icon',
               child: Icon(
                 Icons.bookmark,
-                color: colorScheme.primary,
+                color: colorScheme.secondary,
                 size: 24,
               ),
             ),
@@ -70,13 +92,14 @@ class _SwipeableCardsState extends State<SwipeableCards> {
         SizedBox(height: 6),
         // Container for swipeable content
         Container(
-          padding: const EdgeInsets.all(16.0),
+          height: 150, // Adjusted height for the swipeable card
+          padding: const EdgeInsets.all(12.0),
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(10),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.onSurface.withOpacity(0.1),
+                color: colorScheme.onSurface.withOpacity(0.01),
                 blurRadius: 4,
                 offset: Offset(0, 1),
               ),
@@ -84,9 +107,8 @@ class _SwipeableCardsState extends State<SwipeableCards> {
           ),
           child: Column(
             children: [
-              // Swipeable PageView
-              SizedBox(
-                height: 80, // Constrained height for the swipeable area
+              // Swipeable PageView with vertical scrolling enabled
+              Expanded(
                 child: PageView.builder(
                   controller: _pageController,
                   physics: BouncingScrollPhysics(),
@@ -103,39 +125,39 @@ class _SwipeableCardsState extends State<SwipeableCards> {
                         HapticFeedback.lightImpact(); // Haptic feedback on tap
                         _showFullContentModal(context, doc);
                       },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Reference Title
-                          Text(
-                            doc.title,
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Reference Title (max 2 lines)
+                            Text(
+                              doc.title,
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(height: 6),
-                          // Reference Summary
-                          Text(
-                            doc.summary.length > 80
-                                ? doc.summary.substring(0, 80) + '...'
-                                : doc.summary,
-                            style: textTheme.bodySmall?.copyWith(
-                              fontSize: 14,
-                              color: colorScheme.onSurface.withOpacity(0.6),
+                            SizedBox(height: 4), // Adjusted spacing
+                            // Reference Summary (max 3 lines)
+                            Text(
+                              doc.summary.replaceAll('\n', ' '), // Strip new lines
+                              style: textTheme.bodySmall?.copyWith(
+                                fontSize: 14,
+                                color: colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
                 ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 8), // Adjusted spacing
               // Page Indicator
               SmoothPageIndicator(
                 controller: _pageController,

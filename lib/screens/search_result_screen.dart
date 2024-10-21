@@ -1,10 +1,12 @@
 // lib/screens/search_result_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart'; // Import shimmer package
 import '../widgets/summary_section.dart';
 import '../widgets/swipeable_cards.dart';
 import '../services/api_service.dart';
 import '../models/content_model.dart';
+import 'dart:async'; // For StreamSubscription
 
 class SearchResultScreen extends StatefulWidget {
   final Function(SearchResultScreenState) onInitialize; // Callback to pass state
@@ -25,6 +27,9 @@ class SearchResultScreenState extends State<SearchResultScreen> {
   FocusNode _focusNode = FocusNode();
   ScrollController _scrollController = ScrollController();
 
+  // List to keep track of all active stream subscriptions
+  List<StreamSubscription<Map<String, dynamic>>> _searchSubscriptions = [];
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +44,11 @@ class SearchResultScreenState extends State<SearchResultScreen> {
 
   @override
   void dispose() {
+    // Cancel all active stream subscriptions to prevent memory leaks
+    for (var subscription in _searchSubscriptions) {
+      subscription.cancel();
+    }
+    _searchSubscriptions.clear();
     _searchController.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
@@ -47,50 +57,54 @@ class SearchResultScreenState extends State<SearchResultScreen> {
 
   // Method to add a new search query
   void addSearchQuery(String query) {
+    // Create a new SearchResult and add it to the beginning of the list
+    final newSearchResult = SearchResult(query: query, isLoading: true);
     setState(() {
-      _searchResults.add(SearchResult(query: query, isLoading: true));
+      _searchResults.insert(0, newSearchResult);
     });
 
-    _performSearch(query);
-  }
-
-  void _performSearch(String query) async {
-    try {
-      await for (final data in ApiService.askQuestion(query)) {
+    // Start listening to the stream for this search
+    final subscription = ApiService.askQuestion(query).listen(
+          (data) {
         if (data.containsKey('answer')) {
           setState(() {
-            _searchResults.last.aiSummary += data['answer'];
+            newSearchResult.aiSummary += data['answer'];
           });
         }
         if (data.containsKey('context')) {
           final List<dynamic> docs = data['context'];
           setState(() {
-            _searchResults.last.contextDocuments.addAll(
+            newSearchResult.contextDocuments.addAll(
               docs.map((doc) => ContentModel.fromJson(doc)).toList(),
             );
           });
         }
         if (data.containsKey('error')) {
           setState(() {
-            _searchResults.last.isError = true;
-            _searchResults.last.isLoading = false;
+            newSearchResult.isError = true;
+            newSearchResult.isLoading = false;
           });
-          // Removed SnackBar as per your request
-          return;
+          // Optionally, you can cancel the subscription upon error
+          // subscription.cancel();
         }
-      }
-    } catch (e) {
-      setState(() {
-        _searchResults.last.isError = true;
-        _searchResults.last.isLoading = false;
-      });
-      // Removed SnackBar as per your request
-    } finally {
-      setState(() {
-        _searchResults.last.isLoading = false;
-      });
-      _scrollToNewItemAtTop();
-    }
+      },
+      onError: (e) {
+        setState(() {
+          newSearchResult.isError = true;
+          newSearchResult.isLoading = false;
+        });
+      },
+      onDone: () {
+        setState(() {
+          newSearchResult.isLoading = false;
+        });
+        // No auto-scroll; remove or comment out the _scrollToBottom() call
+        // _scrollToBottom();
+      },
+    );
+
+    // Add the subscription to the list for management
+    _searchSubscriptions.add(subscription);
   }
 
   void _handleSearch() {
@@ -102,24 +116,161 @@ class SearchResultScreenState extends State<SearchResultScreen> {
     }
   }
 
-  void _scrollToNewItemAtTop() {
+  // Removed _scrollToBottom method as auto-scroll is disabled
+  /*
+  void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        // Calculate the target scroll position to attempt to position the bottom of the last item at the top of the viewport
-        final currentPosition = _scrollController.position.pixels;
-        final maxScrollExtent = _scrollController.position.maxScrollExtent;
-        final viewportHeight = _scrollController.position.viewportDimension;
-
-        // Estimate a position to scroll to which attempts to move the last item top out of view
-        final targetPosition = currentPosition + viewportHeight;
-
         _scrollController.animateTo(
-          targetPosition > maxScrollExtent ? maxScrollExtent : targetPosition,  // Ensure we do not scroll beyond the max extent
+          _scrollController.position.maxScrollExtent,
           duration: Duration(milliseconds: 500), // Quick scroll to adjust view
           curve: Curves.easeOut,
         );
       }
     });
+  }
+  */
+
+  // Shimmer Placeholder for SummarySection
+  Widget _buildShimmerSummarySection() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Shimmer.fromColors(
+      baseColor: colorScheme.onSurface.withOpacity(0.1),
+      highlightColor: colorScheme.onSurface.withOpacity(0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Placeholder
+          Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                color: Colors.white,
+              ),
+              SizedBox(width: 8),
+              Container(
+                width: 100,
+                height: 20,
+                color: Colors.white,
+              ),
+            ],
+          ),
+          SizedBox(height: 10),
+          // Summary Placeholder
+          Container(
+            width: double.infinity,
+            height: 80.0, // Adjust height based on your summary's typical size
+            color: Colors.white,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Shimmer Placeholder for SwipeableCards
+  Widget _buildShimmerSwipeableCards() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Shimmer.fromColors(
+      baseColor: colorScheme.onSurface.withOpacity(0.1),
+      highlightColor: colorScheme.onSurface.withOpacity(0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Placeholder
+          Row(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                color: Colors.white,
+              ),
+              SizedBox(width: 8),
+              Container(
+                width: 100,
+                height: 20,
+                color: Colors.white,
+              ),
+            ],
+          ),
+          SizedBox(height: 6),
+          // Swipeable Cards Placeholder
+          Container(
+            height: 150, // Adjusted height for the swipeable card
+            padding: const EdgeInsets.all(12.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                // Simulated PageView with shimmer
+                Expanded(
+                  child: PageView.builder(
+                    itemCount: 3, // Number of shimmer cards
+                    itemBuilder: (context, index) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: double.infinity,
+                            height: 16,
+                            color: Colors.white,
+                          ),
+                          SizedBox(height: 4),
+                          Container(
+                            width: double.infinity,
+                            height: 14,
+                            color: Colors.white,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: 8),
+                // Page Indicator Placeholder
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(3, (index) {
+                    return Container(
+                      width: 8,
+                      height: 8,
+                      margin: EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // General Shimmer Loader
+  Widget _buildShimmerLoader({
+    required double height,
+    double width = double.infinity,
+    BorderRadius? borderRadius,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Shimmer.fromColors(
+      baseColor: colorScheme.onSurface.withOpacity(0.1),
+      highlightColor: colorScheme.onSurface.withOpacity(0.3),
+      child: Container(
+        height: height,
+        width: width,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: borderRadius ?? BorderRadius.circular(8.0),
+        ),
+      ),
+    );
   }
 
   @override
@@ -165,7 +316,7 @@ class SearchResultScreenState extends State<SearchResultScreen> {
             itemBuilder: (context, index) {
               final result = _searchResults[index];
               return Padding(
-                padding: const EdgeInsets.only(bottom: 24.0), // Increased bottom padding for separation
+                padding: const EdgeInsets.only(bottom: 24.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -177,28 +328,38 @@ class SearchResultScreenState extends State<SearchResultScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    SizedBox(height: 12), // Increased spacing between title and summary
-                    // Display AI Summary
-                    if (result.aiSummary.isNotEmpty)
-                      SummarySection(
-                        summary: result.aiSummary,
-                      ),
-                    SizedBox(height: 12), // Increased spacing between summary and references
-                    // Display Swipeable Cards
-                    if (result.contextDocuments.isNotEmpty)
-                      SwipeableCards(
-                        documents: result.contextDocuments,
-                      ),
-                    // Loading Indicator
+                    SizedBox(height: 16), // Increased spacing between title and summary
+
+                    // Display AI Summary or Shimmer
+                    result.isLoading && result.aiSummary.isEmpty
+                        ? _buildShimmerSummarySection()
+                        : (result.aiSummary.isNotEmpty
+                        ? SummarySection(
+                      summary: result.aiSummary,
+                    )
+                        : SizedBox.shrink()),
+
+                    SizedBox(height: 16), // Increased spacing between summary and references
+
+                    // Display Swipeable Cards or Shimmer
+                    result.isLoading && result.contextDocuments.isEmpty
+                        ? _buildShimmerSwipeableCards()
+                        : (result.contextDocuments.isNotEmpty
+                        ? SwipeableCards(
+                      documents: result.contextDocuments,
+                    )
+                        : SizedBox.shrink()),
+
+                    // Loading Indicator or Shimmer
                     if (result.isLoading)
                       Padding(
                         padding: const EdgeInsets.only(top: 12.0),
-                        child: Center(
-                          child: CircularProgressIndicator(
-                            color: colorScheme.primary,
-                          ),
+                        child: _buildShimmerLoader(
+                          height: 20.0,
+                          borderRadius: BorderRadius.circular(10.0),
                         ),
                       ),
+
                     // Error Message
                     if (result.isError)
                       Padding(
@@ -224,21 +385,14 @@ class SearchResultScreenState extends State<SearchResultScreen> {
               // Expanded Search Field
               Expanded(
                 child: Container(
-                  height: 50,
+                  height: 45,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        colorScheme.primary.withOpacity(0.8),
-                        colorScheme.secondary.withOpacity(0.8),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
+                    color: isDarkMode ? Colors.black : Colors.white, // Set color based on theme
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Row(
                     children: [
-                      SizedBox(width: 16.0), // Left padding inside the search box
+                      SizedBox(width: 5.0), // Left padding inside the search box
                       // Expanded TextField without prefixIcon
                       Expanded(
                         child: TextField(
@@ -249,29 +403,31 @@ class SearchResultScreenState extends State<SearchResultScreen> {
                             hintText: 'Ask more questions...',
                             hintStyle: textTheme.bodyMedium?.copyWith(
                               color: isDarkMode
-                                  ? colorScheme.onPrimary.withOpacity(0.6)
-                                  : colorScheme.onPrimary.withOpacity(0.6),
+                                  ? Colors.white.withOpacity(0.6)
+                                  : Colors.black.withOpacity(0.6), // Adjust hint color
                               fontSize: 16,
                             ),
                             border: InputBorder.none,
-                            // Ensure the background is transparent
                             filled: false,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 12.0, // Adjust vertical padding as needed
+                              horizontal: 8.0, // Add horizontal padding if needed
+                            ),
                           ),
                           style: textTheme.bodyMedium?.copyWith(
-                            color: isDarkMode
-                                ? colorScheme.onPrimary.withOpacity(0.9)
-                                : colorScheme.onPrimary.withOpacity(0.9),
+                            color: isDarkMode ? Colors.white : Colors.black, // Set text color
                           ),
-                          cursorColor: colorScheme.onPrimary, // Set cursor color
+                          cursorColor: isDarkMode ? Colors.white : Colors.black, // Set cursor color
                         ),
                       ),
                       // Send Icon Button inside the search box
                       IconButton(
-                        icon: Icon(Icons.send, color: Colors.white),
+                        icon: Icon(Icons.send,
+                            color: isDarkMode ? Colors.white : Colors.black), // Adjust icon color
                         onPressed: _handleSearch,
                         tooltip: 'Send',
                       ),
-                      SizedBox(width: 16.0), // Right padding inside the search box
+                      SizedBox(width: 1.0), // Right padding inside the search box
                     ],
                   ),
                 ),

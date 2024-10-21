@@ -74,7 +74,7 @@ class _MainNavigationState extends State<MainNavigation> {
         backgroundColor: Colors.transparent, // Makes the modal background transparent
         builder: (context) {
           return FractionallySizedBox(
-            heightFactor: 0.9, // Sets the modal height to 90% of the screen
+            heightFactor: 0.92, // Sets the modal height to 90% of the screen
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.background, // Use theme background color
@@ -129,21 +129,25 @@ class _MainNavigationState extends State<MainNavigation> {
             _currentIndex = index;
           });
         },
-        backgroundColor: Theme.of(context).colorScheme.surface, // Use theme surface color
+        backgroundColor: Theme.of(context).colorScheme.background, // Use theme surface color
         unselectedItemColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
         selectedItemColor: Theme.of(context).colorScheme.primary,
+        iconSize: 22, // Smaller icon size
+        selectedFontSize: 0, // Smaller label font size
+        elevation: 0,
+        showSelectedLabels: false,
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: Icon(Icons.home_max_rounded),
+            label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.explore),
-            label: 'Explore',
+            label: '',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.history),
-            label: 'History',
+            label: '',
           ),
         ],
       ),

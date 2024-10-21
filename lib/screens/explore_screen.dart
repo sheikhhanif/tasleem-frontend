@@ -21,7 +21,7 @@ class ExploreScreen extends StatelessWidget {
           children: [
             // App Bar Row
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 10.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -37,7 +37,7 @@ class ExploreScreen extends StatelessWidget {
                   Text(
                     'Explore',
                     style: textTheme.titleLarge?.copyWith(
-                      fontSize: 28,
+                      fontSize: 25,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onBackground,
                     ),

@@ -29,7 +29,7 @@ class _SuggestedQuestionsRowState extends State<SuggestedQuestionsRow>
     // Initialize the animation controller for scrolling
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(seconds: 60), // Adjust for scrolling speed
+      duration: Duration(seconds: 120), // Adjust for scrolling speed
     )..addListener(() {
       if (_scrollController.hasClients && !_isUserScrolling) {
         double newOffset = _animationController.value * _maxScrollExtent;
@@ -109,14 +109,14 @@ class _SuggestedQuestionsRowState extends State<SuggestedQuestionsRow>
                     Icon(
                       Icons.question_answer,
                       color: colorScheme.onSurface, // Theme-based icon color
-                      size: 16,
+                      size: 12,
                     ),
                     SizedBox(width: 6),
                     Text(
                       question,
                       style: textTheme.bodyMedium?.copyWith(
                         color: colorScheme.onSurface, // Theme-based text color
-                        fontSize: 14,
+                        fontSize: 12,
                       ),
                       overflow: TextOverflow.ellipsis,
                     ),

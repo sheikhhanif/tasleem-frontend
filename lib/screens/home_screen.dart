@@ -34,7 +34,7 @@ class HomeScreen extends StatelessWidget {
           children: [
             // App Title and Top Row with Icon Buttons
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16.0),
+              padding: const EdgeInsets.symmetric(vertical: 1.0, horizontal: 5.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -50,7 +50,7 @@ class HomeScreen extends StatelessWidget {
                   Text(
                     'Tasleem',
                     style: textTheme.titleLarge?.copyWith(
-                      fontSize: 28,
+                      fontSize: 25,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onBackground,
                     ),
@@ -58,13 +58,6 @@ class HomeScreen extends StatelessWidget {
                   // Right Icon Button (e.g., Add Person) and Theme Toggle
                   Row(
                     children: [
-                      IconButton(
-                        icon: Icon(Icons.person_add, color: colorScheme.onBackground),
-                        onPressed: () {
-                          // TODO: Implement add person functionality
-                        },
-                        tooltip: 'Add Person',
-                      ),
                       // Theme Toggle Button
                       IconButton(
                         icon: Icon(
@@ -84,20 +77,20 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             // Spacer to push logo to ~60% from top
-            SizedBox(height: screenHeight * 0.05),
+            SizedBox(height: screenHeight * 0.15),
             // Logo and Subtitle
             Column(
               children: [
                 // Tasleem Logo
                 Image.asset(
                   'assets/images/tasleem.png',
-                  height: 80,
+                  height: 60,
                 ),
                 SizedBox(height: 12),
                 // Subtitle
                 Text(
                   'Islamic Search Starts Here',
-                  style: textTheme.bodyLarge?.copyWith(
+                  style: textTheme.bodyMedium?.copyWith(
                     fontSize: 20,
                     color: colorScheme.onBackground.withOpacity(0.7),
                   ),
@@ -154,34 +147,33 @@ class HomeScreen extends StatelessWidget {
               child: GestureDetector(
                 onTap: onSearchBarTap,
                 child: Container(
-                  height: 50,
+                  height: 45,
                   padding: EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        colorScheme.primary.withOpacity(0.8),
-                        colorScheme.secondary.withOpacity(0.8),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
+                    color: colorScheme.surface, // Set to surface color for a smooth background
                     borderRadius: BorderRadius.circular(25),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.01), // Light shadow for a subtle effect
+                        blurRadius: 5,
+                        offset: Offset(0, 2), // Shadow position
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.search, color: Colors.white),
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'Search for Islamic Knowledge...',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: themeProvider.isDarkMode
-                                ? colorScheme.onSurface.withOpacity(0.6) // Dark Mode: darker text
-                                : Colors.white70, // Light Mode: semi-transparent white
-                            fontSize: 16,
+                            color: colorScheme.onSurface.withOpacity(0.7), // Use onSurface color for text
+                            fontSize: 14,
                           ),
                         ),
                       ),
+                      Icon(Icons.send_rounded, color: colorScheme.onSurface.withOpacity(0.7)),
+
                     ],
                   ),
                 ),
