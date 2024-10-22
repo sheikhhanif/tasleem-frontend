@@ -11,10 +11,12 @@ import 'dart:async'; // For StreamSubscription
 class SearchResultScreen extends StatefulWidget {
   final Function(SearchResultScreenState) onInitialize; // Callback to pass state
   final VoidCallback onClose; // Callback when modal is closed
+  final bool autoFocus; // Controls whether to request focus
 
   SearchResultScreen({
     required this.onInitialize,
     required this.onClose,
+    required this.autoFocus, // Make autoFocus required to avoid missing it
   });
 
   @override
@@ -31,24 +33,23 @@ class SearchResultScreenState extends State<SearchResultScreen> {
   List<StreamSubscription<Map<String, dynamic>>> _searchSubscriptions = [];
 
   @override
-  @override
   void initState() {
     super.initState();
-    widget.onInitialize(this); // Pass the state reference
+    widget.onInitialize(this);
 
-    // Request focus on the search bar to open the keyboard automatically
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
-
-    // Listen for when the modal is closed
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Handle modal close
       ModalRoute.of(context)?.addLocalHistoryEntry(
         LocalHistoryEntry(onRemove: widget.onClose),
       );
+
+      // Request focus after ensuring the widget is built and modal route is set
+      if (widget.autoFocus) {
+        // Use FocusScope to request focus
+        FocusScope.of(context).requestFocus(_focusNode);
+      }
     });
   }
-
   @override
   void dispose() {
     // Cancel all active stream subscriptions to prevent memory leaks

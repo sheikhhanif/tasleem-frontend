@@ -54,8 +54,8 @@ class _MainNavigationState extends State<MainNavigation> {
     super.initState();
     _screens = [
       HomeScreen(
-        onSearchBarTap: _openSearchModal, // Function to open the search modal
-        onSearch: _openSearchModalWithQuery, // Function to open the search modal with a query
+        onSearchBarTap: _openSearchModalFromSearchBar,
+        onSearch: _openSearchModalWithQuery,
       ),
       ChangeNotifierProvider(
         create: (_) => ExploreProvider(), // Provide ExploreProvider to ExploreScreen
@@ -65,8 +65,8 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
   }
 
-  // Function to open the search modal without an initial query
-  void _openSearchModal() {
+  // Function to open the search modal with autoFocus parameter
+  void _openSearchModal({required bool autoFocus}) {
     if (!_isSearchModalOpen) {
       setState(() {
         _isSearchModalOpen = true;
@@ -74,7 +74,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
       showModalBottomSheet(
         context: context,
-        isScrollControlled: true, // Allows the modal to take custom height
+        isScrollControlled: true, // Allows the modal to adjust when the keyboard appears
         backgroundColor: Colors.transparent, // Makes the modal background transparent
         builder: (context) {
           return FractionallySizedBox(
@@ -93,6 +93,7 @@ class _MainNavigationState extends State<MainNavigation> {
                     _isSearchModalOpen = false;
                   });
                 },
+                autoFocus: autoFocus, // Pass the autoFocus parameter
               ),
             ),
           );
@@ -106,10 +107,15 @@ class _MainNavigationState extends State<MainNavigation> {
     }
   }
 
-  // Function to open the search modal with an initial query
+  // Function called when the search bar is tapped
+  void _openSearchModalFromSearchBar() {
+    _openSearchModal(autoFocus: true); // Set autoFocus to true
+  }
+
+  // Function called when a suggested question is tapped
   void _openSearchModalWithQuery(String query) {
     if (!_isSearchModalOpen) {
-      _openSearchModal();
+      _openSearchModal(autoFocus: false); // Set autoFocus to false
       // Delay adding the query to ensure the modal is built
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _searchScreenState.addSearchQuery(query);

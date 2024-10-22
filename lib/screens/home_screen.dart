@@ -1,7 +1,6 @@
 // lib/screens/home_screen.dart
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart'; // Import Provider package
 import '../widgets/suggested_questions_row.dart';
 import '../theme_provider.dart'; // Import ThemeProvider
@@ -55,7 +54,7 @@ class HomeScreen extends StatelessWidget {
                       color: colorScheme.onBackground,
                     ),
                   ),
-                  // Right Icon Button (e.g., Add Person) and Theme Toggle
+                  // Right Icon Button (e.g., Theme Toggle)
                   Row(
                     children: [
                       // Theme Toggle Button
@@ -106,7 +105,7 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   // Suggested Questions - First Row
                   SuggestedQuestionsRow(
-                    onQuestionTap: onSearch,
+                    onQuestionTap: onSearch, // Uses the onSearch callback
                     questions: [
                       'What is Riba?',
                       'What is Islam?',
@@ -145,7 +144,7 @@ class HomeScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0), // Consistent padding
               child: GestureDetector(
-                onTap: onSearchBarTap,
+                onTap: onSearchBarTap, // Uses the onSearchBarTap callback
                 child: Container(
                   height: 45,
                   padding: EdgeInsets.symmetric(horizontal: 16),
@@ -173,7 +172,6 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                       Icon(Icons.send_rounded, color: colorScheme.onSurface.withOpacity(0.7)),
-
                     ],
                   ),
                 ),
