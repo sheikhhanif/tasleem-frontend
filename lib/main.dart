@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme.dart';
 import 'theme_provider.dart';
+import 'providers/explore_provider.dart'; // Import ExploreProvider
 import 'screens/home_screen.dart';
 import 'screens/explore_screen.dart';
 import 'screens/history_screen.dart';
@@ -56,7 +57,10 @@ class _MainNavigationState extends State<MainNavigation> {
         onSearchBarTap: _openSearchModal, // Function to open the search modal
         onSearch: _openSearchModalWithQuery, // Function to open the search modal with a query
       ),
-      ExploreScreen(),
+      ChangeNotifierProvider(
+        create: (_) => ExploreProvider(), // Provide ExploreProvider to ExploreScreen
+        child: ExploreScreen(),
+      ),
       HistoryScreen(),
     ];
   }
@@ -74,7 +78,7 @@ class _MainNavigationState extends State<MainNavigation> {
         backgroundColor: Colors.transparent, // Makes the modal background transparent
         builder: (context) {
           return FractionallySizedBox(
-            heightFactor: 0.92, // Sets the modal height to 90% of the screen
+            heightFactor: 0.92, // Sets the modal height to 92% of the screen
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.background, // Use theme background color
@@ -130,7 +134,11 @@ class _MainNavigationState extends State<MainNavigation> {
           });
         },
         backgroundColor: Theme.of(context).colorScheme.background, // Use theme surface color
-        unselectedItemColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6),
+        unselectedItemColor: Theme.of(context)
+            .textTheme
+            .bodyMedium
+            ?.color
+            ?.withOpacity(0.6),
         selectedItemColor: Theme.of(context).colorScheme.primary,
         iconSize: 22, // Smaller icon size
         selectedFontSize: 0, // Smaller label font size

@@ -63,6 +63,17 @@ class SearchResultScreenState extends State<SearchResultScreen> {
       _searchResults.insert(0, newSearchResult);
     });
 
+    // Scroll to the top to show the new shimmer loading area
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0.0,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+
     // Start listening to the stream for this search
     final subscription = ApiService.askQuestion(query).listen(
           (data) {
@@ -98,8 +109,7 @@ class SearchResultScreenState extends State<SearchResultScreen> {
         setState(() {
           newSearchResult.isLoading = false;
         });
-        // No auto-scroll; remove or comment out the _scrollToBottom() call
-        // _scrollToBottom();
+        // No auto-scroll on data update
       },
     );
 
@@ -115,21 +125,6 @@ class SearchResultScreenState extends State<SearchResultScreen> {
       _focusNode.unfocus(); // Unfocus the TextField to exit typing mode
     }
   }
-
-  // Removed _scrollToBottom method as auto-scroll is disabled
-  /*
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 500), // Quick scroll to adjust view
-          curve: Curves.easeOut,
-        );
-      }
-    });
-  }
-  */
 
   // Shimmer Placeholder for SummarySection
   Widget _buildShimmerSummarySection() {
@@ -305,7 +300,8 @@ class SearchResultScreenState extends State<SearchResultScreen> {
           )
               : ListView.separated(
             controller: _scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             itemCount: _searchResults.length,
             separatorBuilder: (context, index) => Divider(
               color: colorScheme.onSurface.withOpacity(0.2),
