@@ -69,7 +69,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         ),
         backgroundColor: Colors.transparent, // No background color
         foregroundColor: _selectedFilter == label
-            ? colorScheme.primary
+            ? colorScheme.secondary
             : colorScheme.onSurface,
         padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
         shape: RoundedRectangleBorder(
@@ -80,32 +80,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
       child: Text(
         label,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  /// Builds the category tag widget.
-  Widget _buildCategoryTag(Article article, ColorScheme colorScheme) {
-    String category = article.id.startsWith('H')
-        ? 'Hadith'
-        : article.id.startsWith('TIK')
-        ? 'Tafsir'
-        : article.id.startsWith('F')
-        ? 'Fatwa'
-        : 'Article';
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Text(
-        category,
-        style: TextStyle(
-          color: Colors.white,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -180,18 +154,6 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   final article = filteredArticles[index];
                   final imagePath = _getImagePath(article.id);
 
-                  // Create a copy of the article with an empty title
-                  final articleWithoutTitle = Article(
-                    id: article.id,
-                    title: '',
-                    content: article.content,
-                    link: article.link,
-                  );
-
-                  // Remove new lines from title and replace with spaces
-                  String processedTitle =
-                  article.title.replaceAll('\n', ' ');
-
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
@@ -202,7 +164,8 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Colors.grey.shade300,
-                          width: 1.5, // Adjust border width as needed
+                          width:
+                          1.5, // Adjust border width as needed
                         ),
                         borderRadius: BorderRadius.circular(
                             20.0), // Make the card more rounded
@@ -210,57 +173,9 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(
                             20.0), // Match the border radius
-                        child: Stack(
-                          children: [
-                            ArticleCard(
-                              article: articleWithoutTitle,
-                              imagePath: imagePath,
-                            ),
-                            // Overlay for category tag and title
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              child: Container(
-                                height:
-                                100, // Same as image height in ArticleCard
-                                padding: EdgeInsets.all(8.0),
-                                decoration: BoxDecoration(
-                                  color: Colors.black
-                                      .withOpacity(
-                                      0.5), // Background color with transparency
-                                ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment.start,
-                                  children: [
-                                    // Category Tag
-                                    _buildCategoryTag(
-                                        article, colorScheme),
-                                    SizedBox(height: 4.0),
-                                    // Title
-                                    Expanded(
-                                      child:
-                                      SingleChildScrollView(
-                                        child: Text(
-                                          processedTitle,
-                                          style: textTheme
-                                              .titleMedium
-                                              ?.copyWith(
-                                            color: Colors.white,
-                                            fontWeight:
-                                            FontWeight.bold,
-                                          ),
-                                          textDirection:
-                                          TextDirection.ltr,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                        child: ArticleCard(
+                          article: article,
+                          imagePath: imagePath,
                         ),
                       ),
                     ),

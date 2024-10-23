@@ -94,13 +94,13 @@ class _SuggestedQuestionsRowState extends State<SuggestedQuestionsRow>
                 margin: const EdgeInsets.symmetric(horizontal: 6.0),
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Reduced internal padding
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceVariant, // Theme-based background color
-                  borderRadius: BorderRadius.circular(24),
+                  color: colorScheme.surfaceDim, // Theme-based background color
+                  borderRadius: BorderRadius.circular(25),
                   boxShadow: [
                     BoxShadow(
-                      color: colorScheme.onSurface.withOpacity(0.1), // Subtle shadow for depth
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
+                      color: colorScheme.onSurface.withOpacity(0.0), // Subtle shadow for depth
+                      blurRadius: 1,
+                      offset: Offset(0, 0),
                     ),
                   ],
                 ),

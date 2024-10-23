@@ -24,8 +24,7 @@ class ArticleCard extends StatelessWidget {
     // Handle bold text wrapped with double asterisks (**)
     content = content.replaceAllMapped(
       RegExp(r'\*\*(.*?)\*\*'),
-          (match) =>
-      '\u{001B}${match[1]}\u{001B}', // Using escape sequence for custom parsing
+          (match) => '\u{001B}${match[1]}\u{001B}', // Using escape sequence for custom parsing
     );
 
     // Replace single newlines where the previous character is not a punctuation mark with a space
@@ -139,6 +138,19 @@ class ArticleCard extends StatelessWidget {
     return text;
   }
 
+  /// Determines the category based on the article ID.
+  String _getCategory() {
+    if (article.id.startsWith('H')) {
+      return 'Hadith';
+    } else if (article.id.startsWith('TIK')) {
+      return 'Tafsir';
+    } else if (article.id.startsWith('F')) {
+      return 'Fatwa';
+    } else {
+      return 'Article';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -163,8 +175,71 @@ class ArticleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Section
-            _buildImageSection(),
+            // Image Section with Full Overlay
+            Stack(
+              children: [
+                // Image Section
+                _buildImageSection(),
+
+                // Full Overlay
+                Container(
+                  height: 100, // Match the image height
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4), // Semi-transparent overlay
+                  ),
+                ),
+
+                // Positioned Buttons and Title within the Overlay
+                Positioned(
+                  top: 8.0,
+                  left: 8.0,
+                  right: 8.0,
+                  bottom: 8.0, // Ensure padding at the bottom
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Buttons Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Category Button
+                          _buildCategoryButton(context, colorScheme, textTheme),
+
+                          // Source Button
+                          _buildSourceButton(context, colorScheme, textTheme),
+                        ],
+                      ),
+                      SizedBox(height: 8.0),
+
+                      // Title with Scrollable Effect
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(top: 4.0), // Add padding between buttons and title
+                          child: Container(
+                            // Removed decoration color for title container as per user instruction
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight: (textTheme.titleSmall?.fontSize ?? 16) * 2 * 1.2, // Approx. height for 2 lines
+                              ),
+                              child: SingleChildScrollView(
+                                child: Text(
+                                  _preprocessTitle(article.title),
+                                  style: textTheme.titleSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
 
             // Content Section
             Expanded(
@@ -179,11 +254,17 @@ class ArticleCard extends StatelessWidget {
     );
   }
 
+  /// Preprocesses the title by removing extra spaces and newlines.
+  String _preprocessTitle(String title) {
+    // Replace newlines with spaces and trim extra spaces
+    return title.replaceAll('\n', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+  }
+
   /// Builds the image section using asset images.
   Widget _buildImageSection() {
     return Image.asset(
       imagePath, // Use the provided image path
-      height: 100, // Reduced height to give more space to content
+      height: 100, // Original small height
       width: double.infinity,
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
@@ -196,6 +277,54 @@ class ArticleCard extends StatelessWidget {
     );
   }
 
+  /// Builds the Category Button with original design.
+  Widget _buildCategoryButton(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return GestureDetector(
+      onTap: () {
+        // Implement navigation or filtering based on category
+        // Example: Navigate to category-specific screen
+        print('Category: ${_getCategory()}');
+      },
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: colorScheme.tertiary, // Original button color
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Text(
+          _getCategory(),
+          style: textTheme.bodySmall?.copyWith(
+            color: Colors.white, // Original text color
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Builds the Source Button with original design.
+  Widget _buildSourceButton(
+      BuildContext context, ColorScheme colorScheme, TextTheme textTheme) {
+    return GestureDetector(
+      onTap: () => _launchURL(article.link, context),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+        decoration: BoxDecoration(
+          color: colorScheme.secondary, // Original button color
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        child: Text(
+          'Source',
+          style: textTheme.bodySmall?.copyWith(
+            color: Colors.white, // Original text color
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Displays the content of the article.
   Widget _buildContent(
       BuildContext context,
@@ -205,55 +334,17 @@ class ArticleCard extends StatelessWidget {
     // Preprocess the article content
     final formattedContent = _preprocessContent(article.content);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Title
-        Text(
-          _truncateText(article.title, 50),
-          style: _getTextStyle(
-            isBold: true,
-            textTheme: textTheme,
-            colorScheme: colorScheme,
-            text: article.title,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        SizedBox(height: 8.0),
-
-        // Content
-        Expanded(
-          child: SingleChildScrollView(
-            child: RichText(
-              textAlign: TextAlign.justify,
-              text: TextSpan(
-                children: _parseContentToTextSpans(
-                  formattedContent,
-                  textTheme,
-                  colorScheme,
-                ),
-              ),
-            ),
+    return SingleChildScrollView(
+      child: RichText(
+        textAlign: TextAlign.justify,
+        text: TextSpan(
+          children: _parseContentToTextSpans(
+            formattedContent,
+            textTheme,
+            colorScheme,
           ),
         ),
-        SizedBox(height: 8.0),
-
-        // Buttons Row
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            // Source Button
-            TextButton(
-              onPressed: () => _launchURL(article.link, context),
-              child: Text(
-                'Source',
-                style: TextStyle(color: colorScheme.primary),
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }

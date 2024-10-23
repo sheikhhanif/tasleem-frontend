@@ -76,7 +76,7 @@ class _SwipeableCardsState extends State<SwipeableCards> {
               label: 'References Icon',
               child: Icon(
                 Icons.bookmark,
-                color: colorScheme.secondary,
+                color: colorScheme.onSurface,
                 size: 24,
               ),
             ),

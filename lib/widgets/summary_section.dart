@@ -17,8 +17,8 @@ class SummarySection extends StatelessWidget {
         Row(
           children: [
             Icon(
-              Icons.summarize,
-              color: Theme.of(context).colorScheme.secondary,
+              Icons.summarize_rounded,
+              color: Theme.of(context).colorScheme.onSurface,
               size: 20, // Adjusted size
             ),
             SizedBox(width: 8),

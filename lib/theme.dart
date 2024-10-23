@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/services.dart'; // For SystemUiOverlayStyle
 
 class AppThemes {
   // 1. Define Primary, Secondary, and Accent Colors
@@ -14,263 +15,259 @@ class AppThemes {
   static const Color darkCharcoal = Color(0xFF333333);
   static const Color lightGray = Color(0xFFF5F5F5);
 
-  // 2. Define Light TextTheme
-  static final TextTheme lightTextTheme = TextTheme(
-    displayLarge: GoogleFonts.poppins(
+  // 2. Helper Method for Text Styles
+  static TextStyle _poppinsStyle({
+    required double fontSize,
+    required FontWeight fontWeight,
+    required Color color,
+  }) {
+    return GoogleFonts.poppins(
       textStyle: TextStyle(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+      ),
+    );
+  }
+
+  static TextStyle _openSansStyle({
+    required double fontSize,
+    required FontWeight fontWeight,
+    required Color color,
+    double? height,
+  }) {
+    return GoogleFonts.openSans(
+      textStyle: TextStyle(
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color,
+        height: height,
+      ),
+    );
+  }
+
+  // 3. Define Light TextTheme
+  static TextTheme _buildLightTextTheme(ColorScheme colorScheme) {
+    return TextTheme(
+      displayLarge: _poppinsStyle(
         fontSize: 57,
         fontWeight: FontWeight.w400,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    displayMedium: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      displayMedium: _poppinsStyle(
         fontSize: 45,
         fontWeight: FontWeight.w400,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    displaySmall: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      displaySmall: _poppinsStyle(
         fontSize: 36,
         fontWeight: FontWeight.w400,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    headlineLarge: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      headlineLarge: _poppinsStyle(
         fontSize: 32,
         fontWeight: FontWeight.w400,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    headlineMedium: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      headlineMedium: _poppinsStyle(
         fontSize: 28,
         fontWeight: FontWeight.w400,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    headlineSmall: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      headlineSmall: _poppinsStyle(
         fontSize: 24,
         fontWeight: FontWeight.w400,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    titleLarge: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      titleLarge: _poppinsStyle(
         fontSize: 22,
         fontWeight: FontWeight.w600,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    titleMedium: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      titleMedium: _poppinsStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    titleSmall: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      titleSmall: _poppinsStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
       ),
-    ),
-    bodyLarge: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      bodyLarge: _openSansStyle(
         fontSize: 16,
         fontWeight: FontWeight.normal,
-        color: darkCharcoal,
+        color: colorScheme.onBackground,
         height: 1.6,
       ),
-    ),
-    bodyMedium: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      bodyMedium: _openSansStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: darkCharcoal,
+        color: colorScheme.onBackground.withOpacity(0.87),
         height: 1.5,
       ),
-    ),
-    bodySmall: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      bodySmall: _openSansStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: darkCharcoal.withOpacity(0.6),
+        color: colorScheme.onBackground.withOpacity(0.6),
         height: 1.4,
       ),
-    ),
-    labelLarge: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      labelLarge: _openSansStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Colors.white,
+        color: colorScheme.onPrimary,
       ),
-    ),
-    labelMedium: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      labelMedium: _openSansStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: Colors.white,
+        color: colorScheme.onPrimary,
       ),
-    ),
-    labelSmall: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      labelSmall: _openSansStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: Colors.white,
+        color: colorScheme.onPrimary,
       ),
-    ),
-  );
+    );
+  }
 
-  // 3. Define Dark TextTheme
-  static final TextTheme darkTextTheme = TextTheme(
-    displayLarge: GoogleFonts.poppins(
-      textStyle: TextStyle(
+  // 4. Define Dark TextTheme
+  static TextTheme _buildDarkTextTheme(ColorScheme colorScheme) {
+    return TextTheme(
+      displayLarge: _poppinsStyle(
         fontSize: 57,
         fontWeight: FontWeight.w400,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    displayMedium: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      displayMedium: _poppinsStyle(
         fontSize: 45,
         fontWeight: FontWeight.w400,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    displaySmall: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      displaySmall: _poppinsStyle(
         fontSize: 36,
         fontWeight: FontWeight.w400,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    headlineLarge: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      headlineLarge: _poppinsStyle(
         fontSize: 32,
         fontWeight: FontWeight.w400,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    headlineMedium: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      headlineMedium: _poppinsStyle(
         fontSize: 28,
         fontWeight: FontWeight.w400,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    headlineSmall: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      headlineSmall: _poppinsStyle(
         fontSize: 24,
         fontWeight: FontWeight.w400,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    titleLarge: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      titleLarge: _poppinsStyle(
         fontSize: 22,
         fontWeight: FontWeight.w600,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    titleMedium: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      titleMedium: _poppinsStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    titleSmall: GoogleFonts.poppins(
-      textStyle: TextStyle(
+      titleSmall: _poppinsStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: Colors.white,
+        color: colorScheme.onBackground,
       ),
-    ),
-    bodyLarge: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      bodyLarge: _openSansStyle(
         fontSize: 16,
         fontWeight: FontWeight.normal,
-        color: Colors.white70,
+        color: colorScheme.onBackground.withOpacity(0.87),
         height: 1.6,
       ),
-    ),
-    bodyMedium: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      bodyMedium: _openSansStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: Colors.white70,
+        color: colorScheme.onBackground.withOpacity(0.87),
         height: 1.5,
       ),
-    ),
-    bodySmall: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      bodySmall: _openSansStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: Colors.white60,
+        color: colorScheme.onBackground.withOpacity(0.6),
         height: 1.4,
       ),
-    ),
-    labelLarge: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      labelLarge: _openSansStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
-        color: Colors.black,
+        color: colorScheme.onPrimary,
       ),
-    ),
-    labelMedium: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      labelMedium: _openSansStyle(
         fontSize: 14,
         fontWeight: FontWeight.normal,
-        color: Colors.black,
+        color: colorScheme.onPrimary,
       ),
-    ),
-    labelSmall: GoogleFonts.openSans(
-      textStyle: TextStyle(
+      labelSmall: _openSansStyle(
         fontSize: 12,
         fontWeight: FontWeight.normal,
-        color: Colors.black,
+        color: colorScheme.onPrimary,
       ),
-    ),
-  );
+    );
+  }
 
-  // 4. Define Light Theme
+  // 5. Define Light Theme
   static final ThemeData lightTheme = ThemeData(
-    useMaterial3: true, // Enable Material 3
+    useMaterial3: true,
     brightness: Brightness.light,
-    primaryColor: vibrantTeal,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: vibrantTeal,
-      brightness: Brightness.light,
+    colorScheme: ColorScheme(
       primary: vibrantTeal,
-      secondary: electricPurple,
-      tertiary: brightOrange,
-      background: lightGray,
-      surface: Colors.white,
       onPrimary: Colors.white,
+      secondary: coralPink,
       onSecondary: Colors.white,
+      tertiary: brightOrange,
       onTertiary: Colors.white,
+      error: Colors.red,
+      onError: Colors.white,
+      background: lightGray,
       onBackground: darkCharcoal,
+      surface: Colors.white,
       onSurface: darkCharcoal,
+      brightness: Brightness.light,
+      primaryContainer: vibrantTeal, // Using base color since shades are not defined
+      secondaryContainer: coralPink,
+      tertiaryContainer: brightOrange,
+      errorContainer: Colors.red.shade700,
     ),
     scaffoldBackgroundColor: lightGray,
     appBarTheme: AppBarTheme(
       backgroundColor: vibrantTeal,
       elevation: 0,
-      titleTextStyle: GoogleFonts.poppins(
-        textStyle: TextStyle(
-          color: Colors.white,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
+      titleTextStyle: _poppinsStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+        color: Colors.white,
       ),
-      iconTheme: IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: Colors.white),
+      systemOverlayStyle: SystemUiOverlayStyle.light,
     ),
-    textTheme: lightTextTheme,
+    textTheme: _buildLightTextTheme(ColorScheme(
+      primary: vibrantTeal,
+      onPrimary: Colors.white,
+      secondary: coralPink,
+      onSecondary: Colors.white,
+      tertiary: brightOrange,
+      onTertiary: Colors.white,
+      error: Colors.red,
+      onError: Colors.white,
+      background: lightGray,
+      onBackground: darkCharcoal,
+      surface: Colors.white,
+      onSurface: darkCharcoal,
+      brightness: Brightness.light,
+      primaryContainer: vibrantTeal,
+      secondaryContainer: coralPink,
+      tertiaryContainer: brightOrange,
+      errorContainer: Colors.red.shade700,
+    )),
     iconTheme: IconThemeData(
       color: darkCharcoal.withOpacity(0.6),
       size: 24,
@@ -279,8 +276,10 @@ class AppThemes {
       style: ElevatedButton.styleFrom(
         backgroundColor: vibrantTeal,
         foregroundColor: Colors.white,
-        textStyle: lightTextTheme.titleMedium?.copyWith(
+        textStyle: _poppinsStyle(
+          fontSize: 16,
           fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(25),
@@ -296,7 +295,7 @@ class AppThemes {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.grey[200],
-      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(25),
         borderSide: BorderSide.none,
@@ -305,7 +304,7 @@ class AppThemes {
     ),
     cardTheme: CardTheme(
       color: Colors.white,
-      elevation: 4,
+      elevation: 0.1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
@@ -317,42 +316,66 @@ class AppThemes {
       showUnselectedLabels: true,
       type: BottomNavigationBarType.fixed,
     ),
-    // Define other theme properties as needed
+    switchTheme: SwitchThemeData(
+      thumbColor: MaterialStateProperty.all(electricPurple),
+      trackColor: MaterialStateProperty.all(electricPurple.withOpacity(0.5)),
+    ),
   );
 
-  // 5. Define Dark Theme
+  // 6. Define Dark Theme
   static final ThemeData darkTheme = ThemeData(
-    useMaterial3: true, // Enable Material 3
+    useMaterial3: true,
     brightness: Brightness.dark,
-    primaryColor: vibrantTeal,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: vibrantTeal,
-      brightness: Brightness.dark,
+    colorScheme: ColorScheme(
       primary: vibrantTeal,
-      secondary: electricPurple,
-      tertiary: brightOrange,
-      background: darkCharcoal,
-      surface: Color(0xFF1E1E1E),
       onPrimary: Colors.black,
+      secondary: electricPurple,
       onSecondary: Colors.white,
+      tertiary: brightOrange,
       onTertiary: Colors.white,
+      error: Colors.red.shade400,
+      onError: Colors.black,
+      background: darkCharcoal,
       onBackground: Colors.white,
+      surface: const Color(0xFF1E1E1E),
       onSurface: Colors.white,
+      brightness: Brightness.dark,
+      primaryContainer: vibrantTeal,
+      secondaryContainer: electricPurple,
+      tertiaryContainer: brightOrange,
+      errorContainer: Colors.red.shade700,
     ),
     scaffoldBackgroundColor: darkCharcoal,
     appBarTheme: AppBarTheme(
       backgroundColor: vibrantTeal,
       elevation: 0,
-      titleTextStyle: GoogleFonts.poppins(
-        textStyle: TextStyle(
-          color: Colors.black,
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-        ),
+      titleTextStyle: _poppinsStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
       ),
-      iconTheme: IconThemeData(color: Colors.black),
+      iconTheme: const IconThemeData(color: Colors.black),
+      systemOverlayStyle: SystemUiOverlayStyle.dark,
     ),
-    textTheme: darkTextTheme,
+    textTheme: _buildDarkTextTheme(ColorScheme(
+      primary: vibrantTeal,
+      onPrimary: Colors.black,
+      secondary: electricPurple,
+      onSecondary: Colors.white,
+      tertiary: brightOrange,
+      onTertiary: Colors.white,
+      error: Colors.red.shade400,
+      onError: Colors.black,
+      background: darkCharcoal,
+      onBackground: Colors.white,
+      surface: const Color(0xFF1E1E1E),
+      onSurface: Colors.white,
+      brightness: Brightness.dark,
+      primaryContainer: vibrantTeal,
+      secondaryContainer: electricPurple,
+      tertiaryContainer: brightOrange,
+      errorContainer: Colors.red.shade700,
+    )),
     iconTheme: IconThemeData(
       color: Colors.white60,
       size: 24,
@@ -361,8 +384,10 @@ class AppThemes {
       style: ElevatedButton.styleFrom(
         backgroundColor: vibrantTeal,
         foregroundColor: Colors.white,
-        textStyle: darkTextTheme.titleMedium?.copyWith(
+        textStyle: _poppinsStyle(
+          fontSize: 16,
           fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(25),
@@ -378,7 +403,7 @@ class AppThemes {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: Colors.grey[800],
-      contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(25),
         borderSide: BorderSide.none,
@@ -386,19 +411,22 @@ class AppThemes {
       hintStyle: TextStyle(color: Colors.grey[400], fontSize: 16),
     ),
     cardTheme: CardTheme(
-      color: Color(0xFF1E1E1E),
-      elevation: 4,
+      color: const Color(0xFF1E1E1E),
+      elevation: 0.1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: const Color(0xFF1E1E1E),
       selectedItemColor: electricPurple,
       unselectedItemColor: Colors.grey,
       showUnselectedLabels: true,
       type: BottomNavigationBarType.fixed,
     ),
-    // Define other theme properties as needed
+    switchTheme: SwitchThemeData(
+      thumbColor: MaterialStateProperty.all(electricPurple),
+      trackColor: MaterialStateProperty.all(electricPurple.withOpacity(0.5)),
+    ),
   );
 }

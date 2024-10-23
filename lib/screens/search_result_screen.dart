@@ -160,7 +160,7 @@ class SearchResultScreenState extends State<SearchResultScreen> {
           // Summary Placeholder
           Container(
             width: double.infinity,
-            height: 80.0, // Adjust height based on your summary's typical size
+            height: 100.0, // Adjust height based on your summary's typical size
             color: Colors.white,
           ),
         ],
@@ -327,7 +327,7 @@ class SearchResultScreenState extends State<SearchResultScreen> {
                       Text(
                         result.query,
                         style: textTheme.titleLarge?.copyWith(
-                          color: colorScheme.primary,
+                          color: colorScheme.onSurface,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
