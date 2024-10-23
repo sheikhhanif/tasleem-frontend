@@ -7,6 +7,10 @@ import '../widgets/swipeable_cards.dart';
 import '../services/api_service.dart';
 import '../models/content_model.dart';
 import 'dart:async'; // For StreamSubscription
+import 'package:provider/provider.dart'; // Import provider
+import '../providers/favorites_provider.dart'; // Import FavoritesProvider
+import '../models/article.dart'; // Import Article model if needed
+import '../utils/text_utils.dart'; // Import TextUtils
 
 class SearchResultScreen extends StatefulWidget {
   final Function(SearchResultScreenState) onInitialize; // Callback to pass state
@@ -50,6 +54,7 @@ class SearchResultScreenState extends State<SearchResultScreen> {
       }
     });
   }
+
   @override
   void dispose() {
     // Cancel all active stream subscriptions to prevent memory leaks
@@ -115,6 +120,20 @@ class SearchResultScreenState extends State<SearchResultScreen> {
         setState(() {
           newSearchResult.isLoading = false;
         });
+
+        // **Add to History Screen Here**
+        if (!newSearchResult.isError && newSearchResult.aiSummary.isNotEmpty) {
+          // Create an Article instance with title and summary, link as empty string
+          final historyArticle = Article(
+            id: UniqueKey().toString(), // Generate a unique ID
+            title: newSearchResult.query,
+            content: newSearchResult.aiSummary,
+            link: '', // Empty link to omit the Source icon
+          );
+
+          // Add the article to the FavoritesProvider (History Screen)
+          Provider.of<FavoritesProvider>(context, listen: false).addArticle(historyArticle);
+        }
       },
     );
 

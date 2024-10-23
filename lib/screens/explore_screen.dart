@@ -75,7 +75,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.0), // Rounded edges
         ),
-        minimumSize: Size(50, 36), // Adjusted size
+        minimumSize: Size(60, 30), // Adjusted size
       ),
       child: Text(
         label,

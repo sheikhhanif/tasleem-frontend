@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'theme.dart';
 import 'theme_provider.dart';
 import 'providers/explore_provider.dart'; // Import ExploreProvider
+import 'providers/favorites_provider.dart'; // Import FavoritesProvider
 import 'screens/home_screen.dart';
 import 'screens/explore_screen.dart';
 import 'screens/history_screen.dart';
@@ -12,8 +13,16 @@ import 'screens/search_result_screen.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => FavoritesProvider(),
+        ),
+        // Add other providers here if needed
+      ],
       child: MyApp(),
     ),
   );
@@ -168,3 +177,4 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 }
+

@@ -1,7 +1,13 @@
+// lib/widgets/article_card.dart
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/article.dart';
 import 'package:characters/characters.dart'; // Import characters package
+import 'package:provider/provider.dart';
+import '../providers/favorites_provider.dart'; // Import the provider
+import '../utils/text_utils.dart'; // Import TextUtils
+import 'package:share_plus/share_plus.dart'; // Import the share_plus package
 
 class ArticleCard extends StatelessWidget {
   final Article article;
@@ -17,125 +23,6 @@ class ArticleCard extends StatelessWidget {
         SnackBar(content: Text('Could not launch the source URL.')),
       );
     }
-  }
-
-  /// Preprocesses content by formatting bold text and handling line breaks.
-  String _preprocessContent(String content) {
-    // Handle bold text wrapped with double asterisks (**)
-    content = content.replaceAllMapped(
-      RegExp(r'\*\*(.*?)\*\*'),
-          (match) => '\u{001B}${match[1]}\u{001B}', // Using escape sequence for custom parsing
-    );
-
-    // Replace single newlines where the previous character is not a punctuation mark with a space
-    content = content.replaceAllMapped(
-      RegExp(r'([^.,;:!?"])\n+'),
-          (match) => '${match[1]} ',
-    );
-
-    // Replace remaining single newlines (after punctuation) with actual line breaks
-    content = content.replaceAll(
-      RegExp(r'[\n]+'),
-      '\n\n',
-    );
-
-    // Remove extra spaces within lines (multiple spaces between words)
-    content = content.replaceAll(
-      RegExp(r'[^\S\n]+'), // Matches whitespace except newlines
-      ' ',
-    );
-
-    // Trim leading and trailing whitespaces
-    content = content.trim();
-
-    return content;
-  }
-
-  /// Detects if the text contains Arabic characters.
-  bool _containsArabic(String text) {
-    return RegExp(r'[\u0600-\u06FF]').hasMatch(text);
-  }
-
-  /// Returns a TextStyle based on whether the text contains Arabic and if it should be bold.
-  TextStyle _getTextStyle({
-    required bool isBold,
-    required TextTheme textTheme,
-    required ColorScheme colorScheme,
-    required String text,
-  }) {
-    bool isArabic = _containsArabic(text);
-    return textTheme.bodyMedium?.copyWith(
-      fontSize: 16,
-      height: 1.6,
-      color: colorScheme.onBackground,
-      fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-      fontFamily: isArabic ? 'Scheherazade' : null,
-    ) ??
-        TextStyle();
-  }
-
-  /// Parses preprocessed content into TextSpan for rendering rich text.
-  List<TextSpan> _parseContentToTextSpans(
-      String content,
-      TextTheme textTheme,
-      ColorScheme colorScheme,
-      ) {
-    List<TextSpan> textSpans = [];
-
-    // Split the content by '\n\n' for handling line breaks
-    List<String> parts = content.split('\n\n');
-
-    for (String part in parts) {
-      // Check if part contains bold text (wrapped in escape sequences)
-      if (part.contains('\u{001B}')) {
-        bool isBold = false;
-        part.split('\u{001B}').forEach((segment) {
-          if (segment.isNotEmpty) {
-            textSpans.add(
-              TextSpan(
-                text: segment,
-                style: _getTextStyle(
-                  isBold: isBold,
-                  textTheme: textTheme,
-                  colorScheme: colorScheme,
-                  text: segment,
-                ),
-              ),
-            );
-          }
-          isBold = !isBold; // Toggle bold
-        });
-      } else {
-        // Regular paragraph segment
-        textSpans.add(
-          TextSpan(
-            text: part,
-            style: _getTextStyle(
-              isBold: false,
-              textTheme: textTheme,
-              colorScheme: colorScheme,
-              text: part,
-            ),
-          ),
-        );
-      }
-
-      // Add a line break between paragraphs
-      textSpans.add(
-        TextSpan(text: '\n\n'),
-      );
-    }
-
-    return textSpans;
-  }
-
-  /// Truncates the given text to a specified length without breaking characters.
-  String _truncateText(String text, int maxLength) {
-    final Characters characters = text.characters;
-    if (characters.length > maxLength) {
-      return characters.take(maxLength).toString() + '...';
-    }
-    return text;
   }
 
   /// Determines the category based on the article ID.
@@ -218,17 +105,12 @@ class ArticleCard extends StatelessWidget {
                           padding: EdgeInsets.only(top: 4.0), // Add padding between buttons and title
                           child: Container(
                             // Removed decoration color for title container as per user instruction
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                maxHeight: (textTheme.titleSmall?.fontSize ?? 16) * 2 * 1.2, // Approx. height for 2 lines
-                              ),
-                              child: SingleChildScrollView(
-                                child: Text(
-                                  _preprocessTitle(article.title),
-                                  style: textTheme.titleSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            child: SingleChildScrollView(
+                              child: Text(
+                                TextUtils.preprocessTitle(article.title),
+                                style: textTheme.titleMedium?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
@@ -248,16 +130,55 @@ class ArticleCard extends StatelessWidget {
                 child: _buildContent(context, textTheme, colorScheme),
               ),
             ),
+
+            // **Added Buttons Section**
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Love Button (Left)
+                  Consumer<FavoritesProvider>(
+                    builder: (context, favoritesProvider, child) {
+                      final isFavorite = favoritesProvider.isFavorite(article);
+                      return IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? colorScheme.onSurface.withOpacity(0.7) : colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                        onPressed: () {
+                          if (isFavorite) {
+                            favoritesProvider.removeArticle(article);
+
+                          } else {
+                            favoritesProvider.addArticle(article);
+
+                          }
+                        },
+                        tooltip: isFavorite ? 'Remove from History' : 'Add to History',
+                      );
+                    },
+                  ),
+
+                  // Share Button (Right)
+                  IconButton(
+                    icon: Icon(
+                      Icons.share,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                    onPressed: () {
+                      // Share the article title and link
+                      Share.share('${article.title}\n${article.link}');
+                    },
+                    tooltip: 'Share',
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  /// Preprocesses the title by removing extra spaces and newlines.
-  String _preprocessTitle(String title) {
-    // Replace newlines with spaces and trim extra spaces
-    return title.replaceAll('\n', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
   /// Builds the image section using asset images.
@@ -331,14 +252,14 @@ class ArticleCard extends StatelessWidget {
       TextTheme textTheme,
       ColorScheme colorScheme,
       ) {
-    // Preprocess the article content
-    final formattedContent = _preprocessContent(article.content);
+    // Preprocess the article content using TextUtils
+    final formattedContent = TextUtils.preprocessContent(article.content);
 
     return SingleChildScrollView(
       child: RichText(
         textAlign: TextAlign.justify,
         text: TextSpan(
-          children: _parseContentToTextSpans(
+          children: TextUtils.parseContentToTextSpans(
             formattedContent,
             textTheme,
             colorScheme,
