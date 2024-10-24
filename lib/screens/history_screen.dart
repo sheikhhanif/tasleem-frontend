@@ -8,6 +8,7 @@ import '../models/article.dart';
 import '../utils/text_utils.dart'; // Import TextUtils
 import 'package:share_plus/share_plus.dart'; // Import the share_plus package
 import 'package:url_launcher/url_launcher.dart'; // Import url_launcher for launching URLs
+import 'package:shimmer/shimmer.dart'; // Import shimmer package
 
 class HistoryScreen extends StatefulWidget { // Changed to StatefulWidget
   @override
@@ -25,14 +26,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     // Access FavoritesProvider to get favorite articles
-    final favoriteArticles = Provider.of<FavoritesProvider>(context).favoriteArticles;
+    final favoritesProvider = Provider.of<FavoritesProvider>(context);
+    final favoriteArticles = favoritesProvider.favoriteArticles;
+    final isLoading = favoritesProvider.isLoading; // **Assuming FavoritesProvider has isLoading**
 
     // Filter articles based on the selected filter
     List<Article> filteredArticles;
     if (_selectedFilter == 'Favorite') {
-      filteredArticles = favoriteArticles.where((article) => article.link.isNotEmpty).toList();
+      filteredArticles =
+          favoriteArticles.where((article) => article.link.isNotEmpty).toList();
     } else if (_selectedFilter == 'Search') {
-      filteredArticles = favoriteArticles.where((article) => article.link.isEmpty).toList();
+      filteredArticles =
+          favoriteArticles.where((article) => article.link.isEmpty).toList();
     } else { // 'All'
       filteredArticles = favoriteArticles;
     }
@@ -62,7 +67,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
             // **Content Section**
             Expanded(
-              child: filteredArticles.isEmpty
+              child: isLoading
+                  ? _buildShimmerHistoryPlaceholder(context) // Shimmer when loading
+                  : filteredArticles.isEmpty
                   ? Center(
                 child: Text(
                   'No history yet.',
@@ -148,6 +155,117 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
     );
   }
+
+  /// Builds a shimmer effect placeholder for HistoryScreen when data is loading.
+  Widget _buildShimmerHistoryPlaceholder(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Shimmer.fromColors(
+      baseColor: colorScheme.onSurface.withOpacity(0.1),
+      highlightColor: colorScheme.onSurface.withOpacity(0.3),
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+        itemCount: 5, // Number of shimmer cards to display
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.0),
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 1.5,
+                ),
+              ),
+              padding: EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Shimmer for Title
+                  Container(
+                    width: double.infinity,
+                    height: 24.0,
+                    color: Colors.white,
+                  ),
+                  SizedBox(height: 4.0),
+                  Divider(
+                    color: Colors.grey.shade300,
+                    thickness: 1.0,
+                  ),
+                  SizedBox(height: 8.0),
+
+                  // Shimmer for Content
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              height: 16.0,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 4.0),
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.6,
+                              height: 16.0,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.expand_more,
+                        color: colorScheme.primary,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+
+                  // Shimmer for Action Buttons
+                  SizedBox(height: 12.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Love Button Placeholder
+                      Container(
+                        width: 40.0,
+                        height: 40.0,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      // Share Button Placeholder
+                      Container(
+                        width: 40.0,
+                        height: 40.0,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      // Another Button Placeholder (if needed)
+                      Container(
+                        width: 40.0,
+                        height: 40.0,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 /// A custom widget that displays an article in an expandable, compact card without an image.
@@ -187,54 +305,56 @@ class _HistoryArticleCardState extends State<HistoryArticleCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // **Title with iOS-like Divider**
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  TextUtils.preprocessTitle(widget.article.title), // Use TextUtils for title preprocessing
-                  style: textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                  maxLines: _isExpanded ? null : 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 4.0),
-                Divider(
-                  color: Colors.grey.shade300,
-                  thickness: 1.0,
-                ),
-              ],
+          // **Title with iOS-like Divider**
+          Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              TextUtils.preprocessTitle(widget.article.title), // Use TextUtils for title preprocessing
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+              maxLines: _isExpanded ? null : 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 8.0),
+            SizedBox(height: 4.0),
+            Divider(
+              color: Colors.grey.shade300,
+              thickness: 1.0,
+            ),
+          ],
+        ),
+        SizedBox(height: 8.0),
 
-            // **Content and Arrow Button**
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Expanded Content Text
-                Expanded(
-                  child: _isExpanded
-                      ? RichText(
-                    textAlign: TextAlign.justify,
-                    text: TextSpan(
-                      children: TextUtils.parseContentToTextSpans(
-                        TextUtils.preprocessContent(widget.article.content),
-                        textTheme,
-                        colorScheme,
-                      ),
-                    ),
-                  )
-                      : Text(
-                    TextUtils.truncateText(widget.article.content, 100),
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurface,
-                      height: 1.6,
-                    ),
+        // **Content and Arrow Button**
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Expanded Content Text
+            Expanded(
+              child: _isExpanded
+                  ? RichText(
+                textAlign: TextAlign.justify,
+                text: TextSpan(
+                  children: TextUtils.parseContentToTextSpans(
+                    TextUtils.preprocessContent(widget.article.content),
+                    textTheme,
+                    colorScheme,
                   ),
                 ),
-              ],
+              )
+                  : Text(
+                TextUtils.truncateText(widget.article.content, 200).replaceAll("\n", " "),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                  height: 1.6,
+                ),
+                maxLines: 3, // Restricts the text to a single line
+                overflow: TextOverflow.ellipsis, // Adds ellipsis (...) if text overflows
+                softWrap: true,
+              ),
+            )],
             ),
 
             // **Action Buttons (Visible Only When Expanded)**
@@ -256,14 +376,10 @@ class _HistoryArticleCardState extends State<HistoryArticleCard> {
                           onPressed: () {
                             if (isFavorite) {
                               favoritesProvider.removeArticle(widget.article);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Removed from history')),
-                              );
+
                             } else {
                               favoritesProvider.addArticle(widget.article);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Added to history')),
-                              );
+
                             }
                           },
                           tooltip: isFavorite ? 'Remove from History' : 'Add to History',

@@ -2,16 +2,30 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart'; // Import hive_flutter for Hive initialization
 import 'theme.dart';
 import 'theme_provider.dart';
 import 'providers/explore_provider.dart'; // Import ExploreProvider
 import 'providers/favorites_provider.dart'; // Import FavoritesProvider
+import 'models/article.dart'; // Import the Article model
+import 'models/article_adapter.dart'; // Import the manually created ArticleAdapter
 import 'screens/home_screen.dart';
 import 'screens/explore_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/search_result_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure Flutter bindings are initialized
+
+  // Initialize Hive
+  await Hive.initFlutter();
+
+  // Register the Article adapter manually
+  Hive.registerAdapter(ArticleAdapter());
+
+  // Open the 'favoritesBox' Hive box for storing favorite/history articles
+  await Hive.openBox<Article>('favoritesBox');
+
   runApp(
     MultiProvider(
       providers: [
@@ -155,7 +169,7 @@ class _MainNavigationState extends State<MainNavigation> {
             ?.color
             ?.withOpacity(0.6),
         selectedItemColor: Theme.of(context).colorScheme.primary,
-        iconSize: 22, // Smaller icon size
+        iconSize: 25, // Smaller icon size
         selectedFontSize: 0, // Smaller label font size
         elevation: 0,
         showSelectedLabels: false,
@@ -177,4 +191,3 @@ class _MainNavigationState extends State<MainNavigation> {
     );
   }
 }
-

@@ -11,6 +11,14 @@ class ExploreProvider extends ChangeNotifier {
   String _errorMessage = '';
   String _currentFilter = 'All';
 
+  // **New Pagination Variables**
+  bool _isLoadingMore = false; // Indicates if more articles are being loaded
+  bool _hasMore = true; // Indicates if more articles are available to load
+
+  // **Getters for Pagination**
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasMore => _hasMore;
+
   List<Article> get articles => _filteredArticles;
   bool get isLoading => _isLoading;
   String get errorMessage => _errorMessage;
@@ -56,5 +64,30 @@ class ExploreProvider extends ChangeNotifier {
       _filteredArticles = _allArticles;
     }
     notifyListeners();
+  }
+
+  // **New Method:** Loads more articles when the user reaches the end.
+  Future<void> loadMoreArticles() async {
+    if (_isLoadingMore || !_hasMore) return; // Prevent duplicate requests
+
+    _isLoadingMore = true;
+    notifyListeners();
+
+    try {
+      // **Fetch additional articles from the API**
+      List<Article> fetchedArticles = await ApiService.fetchExploreItems();
+
+      if (fetchedArticles.isNotEmpty) {
+        _allArticles.addAll(fetchedArticles); // Append new articles
+        applyFilter(_currentFilter); // Re-apply the current filter
+      } else {
+        _hasMore = false; // No more articles to load
+      }
+    } catch (e) {
+      _errorMessage = 'Failed to load more articles.';
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
+    }
   }
 }

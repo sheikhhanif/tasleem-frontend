@@ -1,7 +1,16 @@
+import 'package:hive_flutter/adapters.dart';
+
 class Article {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String title;
+
+  @HiveField(2)
   final String content;
+
+  @HiveField(3)
   final String link;
 
   Article({
